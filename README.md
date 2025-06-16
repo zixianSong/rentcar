@@ -14,7 +14,11 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ```sh
 npm install
+
 ```
+### 连接数据库
+cd backend
+node index.js
 
 ### Compile and Hot-Reload for Development
 
