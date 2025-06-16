@@ -97,11 +97,14 @@ defineProps({
 /* 基础布局样式 */
 .app-container {
   height: 100vh;
+  width: 100vw; /* 确保宽度铺满 */
   overflow: hidden;
 }
 
 .layout-container {
   height: 100%;
+  display: flex;
+  flex-direction: column; /* 垂直排列子元素 */
 }
 
 /* 顶部导航栏样式 */
@@ -163,11 +166,13 @@ defineProps({
 .app-sidebar {
   background-color: #304156;
   transition: width 0.3s;
-  height: 100%;
+  min-height: 0; /* 允许高度自适应 */
+  flex: 0 0 220px; /* 固定宽度，高度自适应 */
 }
 
 .sidebar-menu {
   border-right: none;
+  height: 100%; /* 填满侧边栏高度 */
 }
 
 .sidebar-menu:not(.el-menu--collapse) {
@@ -176,13 +181,17 @@ defineProps({
 
 /* 主内容区样式 */
 .main-container {
+  flex: 1; /* 填满剩余高度 */
+  display: flex;
   flex-direction: column;
 }
 
 .app-main {
   padding: 20px;
   background-color: #f0f2f5;
-  min-height: calc(100vh - 100px);
+  flex: 1; /* 填满剩余空间 */
+  min-height: 0; /* 防止溢出 */
+  overflow: auto; /* 内容溢出时滚动 */
 }
 
 .page-container {
@@ -190,6 +199,7 @@ defineProps({
   border-radius: 4px;
   padding: 20px;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  height: 100%; /* 填满 app-main */
 }
 
 .page-title {
@@ -201,7 +211,8 @@ defineProps({
 }
 
 .content-box {
-  min-height: 500px;
+  min-height: 100%; /* 填满 page-container */
+  height: auto; /* 允许内容扩展 */
 }
 
 /* 页脚样式 */
@@ -214,6 +225,7 @@ defineProps({
   justify-content: center;
   font-size: 12px;
   border-top: 1px solid #e6e6e6;
+  flex-shrink: 0; /* 防止页脚压缩 */
 }
 
 .footer-content {
@@ -239,6 +251,25 @@ defineProps({
   }
 
   .version {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    height: 50px;
+    padding: 0 10px;
+  }
+
+  .app-main {
+    padding: 10px;
+  }
+
+  .page-container {
+    padding: 10px;
+  }
+
+  .username {
     display: none;
   }
 }
