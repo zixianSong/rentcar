@@ -18,7 +18,8 @@ npm install
 ```
 
 ### 连接数据库
-```cd backend
+```sh
+cd backend
 node index.js
 ```
 
