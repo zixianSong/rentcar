@@ -1,25 +1,22 @@
-import { createRouter, createWebHistory } from 'vue-router'
+// src/router/index.js
+import { createRouter, createWebHistory } from 'vue-router';
+import HelloWorld from '../components/HelloWorld.vue';
 
-// 使用懒加载方式导入组件
-const Echartstest = () => import('@/components/Echartstest.vue')
-const AvailableVehicles = () => import('@/components/AvailableVehicles.vue')
 const routes = [
     {
-        path: '/test',
-        name: 'Echartstest',
-        component: Echartstest
+        path: '/',
+        name: 'Home',
+        component: HelloWorld
     },
     {
         path: '/vehicles',
-        name: 'AvailableVehicles',
-        component: AvailableVehicles
+        redirect: '/'
     }
-]
+];
 
 const router = createRouter({
-    // 使用根路径作为基础URL
-    history: createWebHistory('/'),
+    history: createWebHistory(),
     routes
-})
+});
 
-export default router
+export default router;

@@ -1,12 +1,8 @@
 <template>
   <div id="app">
-    <!-- 导航菜单 -->
     <el-menu :default-active="activeRoute" mode="horizontal" class="nav-menu" @select="handleSelect">
-      <el-menu-item index="/vehicles">可用车辆</el-menu-item>
-      <el-menu-item index="/test">ECharts 测试</el-menu-item>
+      <el-menu-item index="/">首页</el-menu-item>
     </el-menu>
-
-    <!-- 路由视图容器 -->
     <router-view></router-view>
   </div>
 </template>
@@ -16,25 +12,19 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMenu, ElMenuItem } from 'element-plus';
 
-// 获取当前路由以高亮导航
 const route = useRoute();
 const activeRoute = computed(() => route.path);
 
-// 导航选择处理（可选）
-const handleSelect = (key) => {
-  // 路由跳转由 vue-router 自动处理
-};
+const handleSelect = (key) => {};
 </script>
 
 <style scoped>
-/* 基础样式 */
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding: 20px;
 }
 
