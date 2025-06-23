@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
-import AvailableVehicles from './AvailableVehicles.vue'; // 导入组件
+import { useRoute } from 'vue-router'; // 用于路由判断
 
 // 保留 HelloWorld 的 props
 defineProps({
@@ -11,6 +11,8 @@ defineProps({
     required: true,
   },
 });
+
+const route = useRoute();
 </script>
 
 <template>
@@ -41,14 +43,15 @@ defineProps({
               background-color="#304156"
               text-color="#bfcbd9"
               class="sidebar-menu"
+              :default-active="route.path"
           >
             <el-sub-menu index="1">
               <template #title>
                 <el-icon><DataLine /></el-icon>
                 <span>数据看板</span>
               </template>
-              <el-menu-item index="1-1">运营概览</el-menu-item>
-              <el-menu-item index="1-2">车辆分析</el-menu-item>
+              <el-menu-item index="/dashboard/1-1">运营概览</el-menu-item>
+              <el-menu-item index="/dashboard/1-2">车辆分析</el-menu-item>
             </el-sub-menu>
 
             <el-sub-menu index="2">
@@ -56,9 +59,9 @@ defineProps({
                 <el-icon><Van /></el-icon>
                 <span>车辆管理</span>
               </template>
-              <el-menu-item index="2-1">车辆列表</el-menu-item>
-              <el-menu-item index="2-2">车辆调度</el-menu-item>
-              <el-menu-item index="2-3">维护记录</el-menu-item>
+              <el-menu-item index="/">车辆列表</el-menu-item>
+              <el-menu-item index="/schedule">车辆调度</el-menu-item>
+              <el-menu-item index="/maintenance">维护记录</el-menu-item>
             </el-sub-menu>
 
             <el-sub-menu index="3">
@@ -66,8 +69,8 @@ defineProps({
                 <el-icon><Document /></el-icon>
                 <span>订单管理</span>
               </template>
-              <el-menu-item index="3-1">订单列表</el-menu-item>
-              <el-menu-item index="3-2">订单统计</el-menu-item>
+              <el-menu-item index="/orders">订单列表</el-menu-item>
+              <el-menu-item index="/order-stats">订单统计</el-menu-item>
             </el-sub-menu>
           </el-menu>
         </el-aside>
@@ -78,7 +81,7 @@ defineProps({
             <div class="page-container">
               <h1 class="page-title">{{ msg }}</h1>
               <div class="content-box">
-                <AvailableVehicles /> <!-- 嵌入可租车辆组件 -->
+                <router-view /> <!-- 动态渲染子组件 -->
               </div>
             </div>
           </el-main>
@@ -166,13 +169,13 @@ defineProps({
 .app-sidebar {
   background-color: #304156;
   transition: width 0.3s;
-  min-height: 0; /* 允许高度自适应 */
-  flex: 0 0 220px; /* 固定宽度，高度自适应 */
+  min-height: 0;
+  flex: 0 0 220px;
 }
 
 .sidebar-menu {
   border-right: none;
-  height: 100%; /* 填满侧边栏高度 */
+  height: 100%;
 }
 
 .sidebar-menu:not(.el-menu--collapse) {
@@ -181,7 +184,7 @@ defineProps({
 
 /* 主内容区样式 */
 .main-container {
-  flex: 1; /* 填满剩余高度 */
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -189,17 +192,16 @@ defineProps({
 .app-main {
   padding: 20px;
   background-color: #f0f2f5;
-  flex: 1; /* 填满剩余空间 */
-  min-height: 0; /* 防止溢出 */
-  overflow: auto; /* 内容溢出时滚动 */
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .page-container {
   background: white;
   border-radius: 4px;
   padding: 20px;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  height: 100%; /* 填满 app-main */
+  height: 100%;
 }
 
 .page-title {
@@ -211,8 +213,8 @@ defineProps({
 }
 
 .content-box {
-  min-height: 100%; /* 填满 page-container */
-  height: auto; /* 允许内容扩展 */
+  min-height: 100%;
+  height: auto;
 }
 
 /* 页脚样式 */
@@ -225,7 +227,7 @@ defineProps({
   justify-content: center;
   font-size: 12px;
   border-top: 1px solid #e6e6e6;
-  flex-shrink: 0; /* 防止页脚压缩 */
+  flex-shrink: 0;
 }
 
 .footer-content {
