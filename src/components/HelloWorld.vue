@@ -1,18 +1,24 @@
 <script setup>
+
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { useRoute } from 'vue-router'; // 用于路由判断
 
 // 保留 HelloWorld 的 props
+
+import AvailableVehicles from './AvailableVehicles.vue' // 引入同级组件
+import { useRouter } from 'vue-router'
+const router = useRouter()
 defineProps({
   msg: {
     type: String,
     required: true,
   },
-});
 
+});
 const route = useRoute();
+
 </script>
 
 <template>
@@ -39,6 +45,7 @@ const route = useRoute();
         <!-- 侧边菜单 -->
         <el-aside width="220px" class="app-sidebar">
           <el-menu
+              router
               active-text-color="#409EFF"
               background-color="#304156"
               text-color="#bfcbd9"
@@ -50,8 +57,8 @@ const route = useRoute();
                 <el-icon><DataLine /></el-icon>
                 <span>数据看板</span>
               </template>
-              <el-menu-item index="/dashboard/1-1">运营概览</el-menu-item>
-              <el-menu-item index="/dashboard/1-2">车辆分析</el-menu-item>
+              <el-menu-item index="dashboard">运营概览</el-menu-item>
+              <el-menu-item index="vehicle_analysis">车辆分析</el-menu-item>
             </el-sub-menu>
 
             <el-sub-menu index="2">
@@ -79,15 +86,16 @@ const route = useRoute();
         <el-container class="main-container">
           <el-main class="app-main">
             <div class="page-container">
-              <h1 class="page-title">{{ msg }}</h1>
+<!--              <h1 class="page-title">{{ msg }}</h1>-->
               <div class="content-box">
                 <router-view /> <!-- 动态渲染子组件 -->
+
               </div>
             </div>
           </el-main>
           <el-footer class="app-footer">
             <div class="footer-content">
-              © 2023 企业租车平台 - 技术支持
+              ©企业租车平台
             </div>
           </el-footer>
         </el-container>
@@ -102,6 +110,7 @@ const route = useRoute();
   height: 100vh;
   width: 100vw; /* 确保宽度铺满 */
   overflow: hidden;
+  width:100vw;
 }
 
 .layout-container {
@@ -214,8 +223,10 @@ const route = useRoute();
 
 .content-box {
   min-height: 100%;
-  height: auto;
+  max-height: 100%;
+  overflow-y: auto;
 }
+
 
 /* 页脚样式 */
 .app-footer {
@@ -265,6 +276,7 @@ const route = useRoute();
 
   .app-main {
     padding: 10px;
+    overflow-y: auto; /* 允许纵向滚动 */
   }
 
   .page-container {
