@@ -5,11 +5,11 @@
       <el-col :span="8" v-for="vehicle in uniqueVehicles" :key="vehicle.vehicle_id">
         <el-card class="vehicle-card" shadow="hover">
           <el-carousel height="200px" v-if="vehicle.imageUrls && vehicle.imageUrls.length">
-            <el-carousel-item v-for="imageUrl in vehicle.imageUrls" :key="imageUrl">
-              <img :src="getImageUrl(imageUrl)" alt="Vehicle" class="vehicle-image" @error="handleImageError" />
+            <el-carousel-item v-for="(imageUrl, index) in vehicle.imageUrls" :key="index">
+              <img :src="imageUrl" alt="Vehicle" class="vehicle-image" @error="handleImageError" />
             </el-carousel-item>
           </el-carousel>
-          <img v-else :src="getImageUrl('/assets/HondaCivic.jpeg')" alt="Vehicle" class="vehicle-image" @error="handleImageError" />
+          <img v-else src="/src/assets/HondaCivic.jpeg" alt="Vehicle" class="vehicle-image" />
           <div class="vehicle-info">
             <h3>{{ vehicle.model }}</h3>
             <p>车牌: {{ vehicle.license_plate }}</p>
@@ -36,12 +36,7 @@ const vehicles = ref([]);
 // 获取可用车辆
 const fetchVehicles = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/available-vehicles', {
-      params: {
-        startDate: '2025-06-16',
-        endDate: '2025-06-20'
-      }
-    });
+    const response = await axios.get('http://localhost:3000/available-vehicles');
     vehicles.value = Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     ElMessage.error(`获取车辆信息失败: ${error.message}`);
@@ -52,43 +47,49 @@ const fetchVehicles = async () => {
 
 // 去重并聚合图片
 const uniqueVehicles = computed(() => {
-  if (!Array.isArray(vehicles.value)) return [];
-  const seen = new Map();
-  vehicles.value.forEach(item => {
-    if (!seen.has(item.vehicle_id)) {
-      seen.set(item.vehicle_id, {
-        ...item,
+  const vehicleMap = new Map();
+
+  vehicles.value.forEach(vehicle => {
+    if (!vehicleMap.has(vehicle.vehicle_id)) {
+      vehicleMap.set(vehicle.vehicle_id, {
+        ...vehicle,
         imageUrls: []
       });
     }
-    if (item.image_url) {
-      seen.get(item.vehicle_id).imageUrls.push(normalizeImageUrl(item.image_url));
+
+    const currentVehicle = vehicleMap.get(vehicle.vehicle_id);
+    if (vehicle.image_url) {
+      currentVehicle.imageUrls.push(processImageUrl(vehicle.image_url));
     }
   });
-  return Array.from(seen.values());
+
+  return Array.from(vehicleMap.values());
 });
 
-// 规范化图片路径
-const normalizeImageUrl = (url) => {
-  if (!url) return null;
-  // 处理 ../assets/ 或 /assets/，移除 ../ 前缀并规范化
-  return url.replace(/^(\.\.\/|\/)?assets\//, '/src/assets/').replace(/ /g, ''); // 移除空格
-};
+// 处理图片URL
+const processImageUrl = (url) => {
+  if (!url) return '/src/assets/HondaCivic.jpeg';
 
-// 图片路径处理
-const getImageUrl = (url) => {
-  if (!url) return 'https://via.placeholder.com/300';
-  try {
-    const normalizedUrl = normalizeImageUrl(url);
-    return new URL(normalizedUrl, import.meta.url).href;
-  } catch (e) {
-    console.warn('Image not found:', url, e);
-    return 'https://via.placeholder.com/300';
+  // 处理相对路径
+  if (url.startsWith('../assets/')) {
+    return url.replace('../assets/', '/src/assets/');
   }
+
+  // 处理绝对路径
+  if (url.startsWith('/assets/')) {
+    return url.replace('/assets/', '/src/assets/');
+  }
+
+  // 处理完整URL（如来自数据库的）
+  if (url.startsWith('http')) {
+    return url;
+  }
+
+  return '/src/assets/HondaCivic.jpeg';
 };
 
 const handleImageError = (event) => {
-  event.target.src = '/src/assets/HondaCivic.jpeg'; // 使用本地默认图
+  event.target.src = '/src/assets/HondaCivic.jpeg';
 };
 
 const rentVehicle = (vehicleId) => {

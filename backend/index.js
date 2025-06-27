@@ -21,63 +21,72 @@ const dbConfig = {
     host: 'localhost',
     port: 3306,
     user: 'root',
-    password: '123456',
-    database: 'rental platform'
+    password: 'Tnm123*',
+    database: 'rental_platform'
 };
 
 // API：获取可用车辆
 app.get('/available-vehicles', async (req, res) => {
-
-
-// API：获取所有车辆
-
     try {
         const connection = await mysql.createConnection(dbConfig);
         const { startDate, endDate } = req.query;
 
-        const query = `
-                 SELECT 
-                     v.vehicle_id,
-                     v.model,
-                     v.license_plate,
-                     v.seat_count,
-                     v.transmission_type,
-                     i.status,
-                     l.province,
-                     l.city,
-                     l.district,
-                     l.detailed_address,
-                     p.daily_rate,
-                     p.hourly_rate,
-                     vi.image_url
-                 FROM 
-                     vehicle_info v
-                     INNER JOIN inventory i ON v.vehicle_id = i.vehicle_id
-                     INNER JOIN location l ON i.location_id = l.location_id
-                     INNER JOIN vehicle_price p ON v.vehicle_id = p.vehicle_id
-                     LEFT JOIN vehicle_image vi ON v.vehicle_id = vi.vehicle_id
-                 WHERE 
-                     i.status = 'Available'
-                     AND NOT EXISTS (
-                         SELECT 1
-                         FROM rental_order ro
-                         WHERE 
-                             ro.vehicle_id = v.vehicle_id
-                             AND ro.order_status IN ('Pending', 'Confirmed')
-                             AND (
-                                 (ro.start_date < i.end_date AND ro.end_date > i.start_date)
-                                 OR (ro.start_date <= ? AND ro.end_date >= ?)
-                             )
-                     );
-             `;
+        // 使用当前日期作为默认值
+        const currentDate = new Date().toISOString().split('T')[0];
+        const defaultStartDate = startDate || currentDate;
+        const defaultEndDate = endDate || currentDate;
 
-        const [rows] = await connection.execute(query, [endDate || '2025-12-31', startDate || '2025-06-16']);
+        const query = `
+            SELECT 
+                v.vehicle_id,
+                v.model,
+                v.license_plate,
+                v.seat_count,
+                v.transmission_type,
+                i.status,
+                l.province,
+                l.city,
+                l.district,
+                l.detailed_address,
+                p.daily_rate,
+                p.hourly_rate,
+                vi.image_url
+            FROM 
+                vehicle_info v
+                INNER JOIN inventory i ON v.vehicle_id = i.vehicle_id
+                INNER JOIN location l ON i.location_id = l.location_id
+                INNER JOIN vehicle_price p ON v.vehicle_id = p.vehicle_id
+                LEFT JOIN vehicle_image vi ON v.vehicle_id = vi.vehicle_id
+            WHERE 
+                i.status = 'Available'
+                AND ? BETWEEN i.start_date AND i.end_date
+                AND ? BETWEEN i.start_date AND i.end_date
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM rental_order ro
+                    WHERE 
+                        ro.vehicle_id = v.vehicle_id
+                        AND ro.order_status IN ('Pending', 'Confirmed')
+                        AND (
+                            (ro.start_date < ? AND ro.end_date > ?) OR
+                            (ro.start_date <= ? AND ro.end_date >= ?)
+                        )
+                );
+        `;
+
+        const [rows] = await connection.execute(query, [
+            defaultStartDate, defaultEndDate,
+            defaultEndDate, defaultStartDate,
+            defaultEndDate, defaultStartDate
+        ]);
+
         await connection.end();
         res.json(rows);
     } catch (error) {
         console.error('Error fetching vehicles:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
+});
 //获取车辆总数
     app.get('/total-vehicles', async (req, res) => {
         try {
@@ -177,9 +186,6 @@ app.get('/available-vehicles', async (req, res) => {
             if (connection) await connection.end();
         }
     });
-
-});
-
 // API：获取所有地点
 app.get('/locations', async (req, res) => {
     try {
@@ -337,4 +343,5 @@ app.get('/model-revenue-summary', async (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+
 });
