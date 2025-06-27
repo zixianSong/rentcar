@@ -43,7 +43,7 @@ const route = useRoute();
 
       <el-container class="content-container">
         <!-- 侧边菜单 -->
-        <el-aside width="220px" class="app-sidebar">
+        <el-aside style="width: 13vw" class="app-sidebar">
           <el-menu
               router
               active-text-color="#409EFF"
@@ -67,6 +67,7 @@ const route = useRoute();
                 <span>车辆管理</span>
               </template>
               <el-menu-item index="/">车辆列表</el-menu-item>
+              <el-menu-item index ="/current_inventory">库存列表</el-menu-item>
               <el-menu-item index="/schedule">车辆调度</el-menu-item>
               <el-menu-item index="/maintenance">维护记录</el-menu-item>
             </el-sub-menu>
@@ -179,7 +180,7 @@ const route = useRoute();
   background-color: #304156;
   transition: width 0.3s;
   min-height: 0;
-  flex: 0 0 220px;
+  flex: 0 0 15vw;
 }
 
 .sidebar-menu {
@@ -188,7 +189,7 @@ const route = useRoute();
 }
 
 .sidebar-menu:not(.el-menu--collapse) {
-  width: 220px;
+  width: 15vw;
 }
 
 /* 主内容区样式 */

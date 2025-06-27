@@ -337,6 +337,54 @@ app.get('/model-revenue-summary', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+//获取库存表
+app.get('/inventory', async (req, res) => {
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const { model, status, transmission, date_start, date_end } = req.query;
+        let conditions = [];
+        let values = [];
+
+        if (model) {
+            conditions.push('v.model = ?');
+            values.push(model);
+        }
+        if (status) {
+            conditions.push('i.status = ?');
+            values.push(status);
+        }
+        if (transmission) {
+            conditions.push('v.transmission_type = ?');
+            values.push(transmission);
+        }
+        if (date_start && date_end) {
+            // 区间重叠条件
+            conditions.push('(i.start_date <= ? AND i.end_date >= ?)');
+            values.push(date_end, date_start);
+        }
+
+        const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+
+        const [rows] = await connection.execute(`
+            SELECT 
+                i.inventory_id, i.vehicle_id, i.status,
+                i.start_date, i.end_date, i.start_time, i.end_time,
+                v.model, v.transmission_type
+            FROM inventory i
+            JOIN vehicle_info v ON i.vehicle_id = v.vehicle_id
+            ${whereClause}
+        `, values);
+
+        res.json(rows);
+    } catch (err) {
+        console.error('获取库存数据失败:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    } finally {
+        await connection.end();
+    }
+});
+
+
 
 
 // 启动服务器

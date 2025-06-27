@@ -8,6 +8,7 @@ import VehicleAnalysis from '../components/VehicleAnalysis.vue';
 import VehicleForm from '../components/OrderStats.vue';
 import OrderList from '../components/OrderList.vue';
 import OrderStats from "@/components/OrderStats.vue";
+import CurrentInventory from "@/components/CurrentInventory.vue";
 
 const routes = [
     {
@@ -24,6 +25,8 @@ const routes = [
             { path: 'available_vehicles', component: AvailableVehicles, name: 'AvailableVehicles' },
             { path: 'schedule', name: 'Schedule', component: VehicleSchedule},
             { path: 'order-stats', name: 'OrderStats', component: OrderStats},
+            { path: 'current_inventory', name: 'CurrentInventory', component: CurrentInventory},
+
         ]
     },
     {

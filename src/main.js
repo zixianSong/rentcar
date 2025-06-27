@@ -4,7 +4,9 @@ import router from './router' // 导入路由配置
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as echarts from 'echarts'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './assets/main.css'; // 导入全局样式
+
 // 创建应用实例
 const app = createApp(App)
 
@@ -17,3 +19,6 @@ app.config.globalProperties.$echarts = echarts
 app.use(router)
 
 app.mount('#app')
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+}
