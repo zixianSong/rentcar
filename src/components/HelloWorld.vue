@@ -67,9 +67,10 @@ const route = useRoute();
                 <span>车辆管理</span>
               </template>
               <el-menu-item index="/">车辆列表</el-menu-item>
-              <el-menu-item index ="/current_inventory">库存列表</el-menu-item>
               <el-menu-item index="/schedule">车辆调度</el-menu-item>
-              <el-menu-item index="/maintenance">维护记录</el-menu-item>
+              <el-menu-item index ="/current_inventory">库存列表</el-menu-item>
+              <el-menu-item index="/inventory-map">库存地图</el-menu-item>
+
             </el-sub-menu>
 
             <el-sub-menu index="3">
@@ -203,15 +204,16 @@ const route = useRoute();
   padding: 20px;
   background-color: #f0f2f5;
   flex: 1;
-  min-height: 0;
-  overflow: auto;
+
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .page-container {
   background: white;
   border-radius: 4px;
   padding: 20px;
-  height: 100%;
+  min-height: auto ;
 }
 
 .page-title {

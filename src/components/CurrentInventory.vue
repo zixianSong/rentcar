@@ -1,6 +1,6 @@
 <template>
   <div class="inventory-container">
-    <el-card>
+    <el-card style="height: 85vh;">
       <template #header>
         <div class="table-header">
           <span>当前库存</span>
@@ -74,7 +74,9 @@
             :formatter="formatDateRange"
         />
       </el-table>
+<!--      <InventoryMap style="max-height: 20vh; overflow: hidden;max-width: 50vw" />-->
     </el-card>
+
   </div>
 </template>
 
@@ -83,7 +85,7 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { Calendar } from '@element-plus/icons-vue'
-
+import InventoryMap from '@/components/InventoryMap.vue'
 // 库存数据列表
 const inventoryData = ref([])
 const timeFilterDialogVisible = ref(false)
@@ -128,8 +130,8 @@ const applyTimeFilter = async () => {
 
   try {
     const params = {
-      start_datetime: startDateTime,
-      end_datetime: endDateTime
+      date_start: startDateTime,
+      date_end: endDateTime
     }
 
     const response = await axios.get('/api/inventory', { params })
@@ -222,6 +224,7 @@ const filterTransmission = (value, row) => row.transmission_type === value
 <style scoped>
 .inventory-container {
   padding: 10px;
+  margin: 0;
 }
 
 .table-header {

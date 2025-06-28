@@ -9,6 +9,7 @@ import VehicleForm from '../components/OrderStats.vue';
 import OrderList from '../components/OrderList.vue';
 import OrderStats from "@/components/OrderStats.vue";
 import CurrentInventory from "@/components/CurrentInventory.vue";
+import InventoryMap from "@/components/InventoryMap.vue";
 
 const routes = [
     {
@@ -26,13 +27,15 @@ const routes = [
             { path: 'schedule', name: 'Schedule', component: VehicleSchedule},
             { path: 'order-stats', name: 'OrderStats', component: OrderStats},
             { path: 'current_inventory', name: 'CurrentInventory', component: CurrentInventory},
+            { path: 'inventory-map', name: 'InventoryMap', component: InventoryMap},
 
         ]
     },
     {
         path: '/vehicles',
         redirect: '/'
-    }
+    },
+
 ];
 
 const router = createRouter({

@@ -21,8 +21,8 @@ const dbConfig = {
     host: 'localhost',
     port: 3306,
     user: 'root',
-    password: 'Tnm123*',
-    database: 'rental_platform'
+    password: '123456',
+    database: 'rental platform'
 };
 
 // API：获取可用车辆
@@ -189,7 +189,7 @@ app.post('/vehicles', async (req, res) => {
 app.get('/locations', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbConfig);
-        const [rows] = await connection.execute('SELECT location_id, province, city, district, detailed_address FROM location');
+        const [rows] = await connection.execute('SELECT location_id, province, city, district, detailed_address,longitude, latitude FROM location');
         await connection.end();
         res.json(rows);
     } catch (error) {
@@ -384,8 +384,10 @@ app.get('/inventory', async (req, res) => {
             values.push(transmission);
         }
         if (date_start && date_end) {
-            // 区间重叠条件
-            conditions.push('(i.start_date <= ? AND i.end_date >= ?)');
+            conditions.push(`(
+        STR_TO_DATE(CONCAT(i.start_date, ' ', i.start_time), '%Y-%m-%d %H:%i:%s') <= ?
+        AND STR_TO_DATE(CONCAT(i.end_date, ' ', i.end_time), '%Y-%m-%d %H:%i:%s') >= ?
+    )`);
             values.push(date_end, date_start);
         }
 
@@ -395,7 +397,7 @@ app.get('/inventory', async (req, res) => {
             SELECT 
                 i.inventory_id, i.vehicle_id, i.status,
                 i.start_date, i.end_date, i.start_time, i.end_time,
-                v.model, v.transmission_type
+                v.model, v.transmission_type,i.location_id
             FROM inventory i
             JOIN vehicle_info v ON i.vehicle_id = v.vehicle_id
             ${whereClause}
