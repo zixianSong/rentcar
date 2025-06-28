@@ -88,104 +88,103 @@ app.get('/available-vehicles', async (req, res) => {
     }
 });
 //获取车辆总数
-    app.get('/total-vehicles', async (req, res) => {
-        try {
-            const connection = await mysql.createConnection(dbConfig);
-            const [rows] = await connection.execute('SELECT COUNT(*) as total FROM vehicle_info');
-            await connection.end();
-            res.json(rows[0]);
-        } catch (error) {
-            console.error('Error fetching total vehicles:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
+app.get('/total-vehicles', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT COUNT(*) as total FROM vehicle_info');
+        await connection.end();
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error fetching total vehicles:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 //获取可用车辆数
-    app.get('/available-vehicles-count', async (req, res) => {
-        try {
-            const connection = await mysql.createConnection(dbConfig);
-            const [rows] = await connection.execute('SELECT COUNT(*) as available FROM inventory WHERE status = "Available"');
-            await connection.end();
-            res.json(rows[0]);
-        } catch (error) {
-            console.error('Error fetching available vehicles count:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
+app.get('/available-vehicles-count', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT COUNT(*) as available FROM inventory WHERE status = "Available"');
+        await connection.end();
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error fetching available vehicles count:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 // API：获取订单列表
-    app.get('/orders', async (req, res) => {
-        try {
-            const connection = await mysql.createConnection(dbConfig);
-            const [rows] = await connection.execute('SELECT * FROM rental_order');
-            await connection.end();
-            res.json(rows);
-        } catch (error) {
-            console.error('Error fetching orders:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
+app.get('/orders', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT * FROM rental_order');
+        await connection.end();
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 //获取订单总数
-    app.get('/total-orders', async (req, res) => {
-        try {
-            const connection = await mysql.createConnection(dbConfig);
-            const [rows] = await connection.execute('SELECT COUNT(*) as total FROM rental_order');
-            await connection.end();
-            res.json(rows[0]);
-        } catch (error) {
-            console.error('Error fetching total orders:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
+app.get('/total-orders', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT COUNT(*) as total FROM rental_order');
+        await connection.end();
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error fetching total orders:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 //获取总收入
-    app.get('/total-revenue', async (req, res) => {
-        try {
-            const connection = await mysql.createConnection(dbConfig);
-            const [rows] = await connection.execute('SELECT SUM(actual_payment) as total_revenue FROM rental_order WHERE order_status = \'Completed\'');
-            await connection.end();
-            res.json(rows[0]);
-        } catch (error) {
-            console.error('Error fetching total vehicles:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
-
+app.get('/total-revenue', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        const [rows] = await connection.execute('SELECT SUM(actual_payment) as total_revenue FROM rental_order WHERE order_status = \'Completed\'');
+        await connection.end();
+        res.json(rows[0]);
+    } catch (error) {
+        console.error('Error fetching total vehicles:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 //添加车辆
-    app.post('/vehicles', async (req, res) => {
-        const { model, license_plate, seat_count, transmission_type, location_id, daily_rate, hourly_rate, image_url } = req.body;
-        let connection;
-        try {
-            connection = await mysql.createConnection(dbConfig);
-            await connection.beginTransaction();
-            const [result] = await connection.execute(
-                'INSERT INTO vehicle_info (model, license_plate, seat_count, transmission_type) VALUES (?, ?, ?, ?)',
-                [model, license_plate, seat_count, transmission_type]
-            );
-            const vehicle_id = result.insertId;
+app.post('/vehicles', async (req, res) => {
+    const { model, license_plate, seat_count, transmission_type, location_id, daily_rate, hourly_rate, image_url } = req.body;
+    let connection;
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        await connection.beginTransaction();
+        const [result] = await connection.execute(
+            'INSERT INTO vehicle_info (model, license_plate, seat_count, transmission_type) VALUES (?, ?, ?, ?)',
+            [model, license_plate, seat_count, transmission_type]
+        );
+        const vehicle_id = result.insertId;
+        await connection.execute(
+            'INSERT INTO inventory (vehicle_id, location_id, status) VALUES (?, ?, ?)',
+            [vehicle_id, location_id, 'Available']
+        );
+        await connection.execute(
+            'INSERT INTO vehicle_price (vehicle_id, daily_rate, hourly_rate) VALUES (?, ?, ?)',
+            [vehicle_id, daily_rate, hourly_rate]
+        );
+        if (image_url) {
             await connection.execute(
-                'INSERT INTO inventory (vehicle_id, location_id, status) VALUES (?, ?, ?)',
-                [vehicle_id, location_id, 'Available']
+                'INSERT INTO vehicle_image (vehicle_id, image_url) VALUES (?, ?)',
+                [vehicle_id, image_url]
             );
-            await connection.execute(
-                'INSERT INTO vehicle_price (vehicle_id, daily_rate, hourly_rate) VALUES (?, ?, ?)',
-                [vehicle_id, daily_rate, hourly_rate]
-            );
-            if (image_url) {
-                await connection.execute(
-                    'INSERT INTO vehicle_image (vehicle_id, image_url) VALUES (?, ?)',
-                    [vehicle_id, image_url]
-                );
-            }
-            await connection.commit();
-            res.status(201).json({ message: 'Vehicle added successfully', vehicle_id });
-        } catch (error) {
-            if (connection) await connection.rollback();
-            console.error('Error adding vehicle:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        } finally {
-            if (connection) await connection.end();
         }
-    });
+        await connection.commit();
+        res.status(201).json({ message: 'Vehicle added successfully', vehicle_id });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error('Error adding vehicle:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
 // API：获取所有地点
 app.get('/locations', async (req, res) => {
     try {
@@ -261,6 +260,33 @@ app.post('/vehicles/schedule', async (req, res) => {
         if (connection) await connection.end();
     }
 });
+
+// API：添加新地点
+app.post('/locations', async (req, res) => {
+    let connection;
+    try {
+        connection = await mysql.createConnection(dbConfig);
+        await connection.beginTransaction();
+
+        const { province, city, district, detailed_address, longitude, latitude } = req.body;
+
+        const insertQuery = `
+            INSERT INTO location (province, city, district, detailed_address, longitude, latitude)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const [result] = await connection.execute(insertQuery, [province, city, district, detailed_address, longitude, latitude]);
+
+        await connection.commit();
+        res.status(201).json({ success: true, message: '地点添加成功', location_id: result.insertId });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error('Error adding location:', error);
+        res.status(500).json({ success: false, error: error.message });
+    } finally {
+        if (connection) await connection.end();
+    }
+});
+
 // 车辆状态分布
 app.get('/vehicle-status-summary', async (req, res) => {
     try {
@@ -383,7 +409,6 @@ app.get('/inventory', async (req, res) => {
         await connection.end();
     }
 });
-
 
 
 
