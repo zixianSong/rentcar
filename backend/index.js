@@ -198,64 +198,62 @@ app.get('/locations', async (req, res) => {
     }
 });
 
-// API：车辆调度
+// API：车辆调度（使用存储过程）
 app.post('/vehicles/schedule', async (req, res) => {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
-        await connection.beginTransaction();
 
-        const { vehicleId, startDate, startTime, endDate, endTime, locationId, status } = req.body;
+        // 从请求体中获取参数
+        const {
+            vehicleId,
+            startDate, startTime,
+            endDate, endTime,
+            locationId,
+            status
+        } = req.body;
 
-        const startDateTime = `${startDate} ${startTime}`;
-        const endDateTime = `${endDate} ${endTime}`;
+        // 获取当前用户ID（根据您的认证系统调整）
+        const scheduledBy = req.user?.id || 1;
 
-        const conflictQuery = `
-                 SELECT 1
-                 FROM inventory i
-                 WHERE i.vehicle_id = ?
-                 AND (
-                     (i.start_date < ? AND i.end_date > ?)
-                     OR EXISTS (
-                         SELECT 1 FROM rental_order ro
-                         WHERE ro.vehicle_id = i.vehicle_id
-                         AND ro.order_status IN ('Pending', 'Confirmed')
-                         AND (
-                             (ro.start_date < ? AND ro.end_date > ?)
-                             OR (ro.start_date <= ? AND ro.end_date >= ?)
-                         )
-                     )
-                 ) AND i.status != 'Available';
-             `;
-        const [conflict] = await connection.execute(conflictQuery, [vehicleId, endDateTime, startDateTime, endDateTime, startDateTime, endDateTime, startDateTime]);
+        // 调用存储过程
+        const [result] = await connection.execute(
+            `CALL sp_schedule_vehicle(?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                vehicleId,
+                startDate, startTime,
+                endDate, endTime,
+                locationId,
+                status,
+                scheduledBy
+            ]
+        );
 
-        if (conflict.length > 0) {
-            throw new Error('该时间段内车辆已被占用或调度');
-        }
+        // 存储过程成功执行后返回的消息
+        const message = result[0][0]?.message || '车辆调度成功';
 
-        const updateQuery = `
-                 UPDATE inventory 
-                 SET status = ?, start_date = ?, end_date = ?, start_time = ?, end_time = ?, location_id = ?
-                 WHERE vehicle_id = ? AND status = 'Available';
-             `;
-        const [updateResult] = await connection.execute(updateQuery, [status, startDate, endDate, startTime, endTime, locationId, vehicleId]);
+        res.json({
+            success: true,
+            message: message
+        });
 
-        if (updateResult.affectedRows === 0) {
-            throw new Error('车辆不可用或更新失败');
-        }
-
-        const logQuery = `
-                 INSERT INTO schedule_log (vehicle_id, location_id, start_date, end_date, status, scheduled_by)
-                 VALUES (?, ?, ?, ?, ?, 1);
-             `;
-        await connection.execute(logQuery, [vehicleId, locationId, startDate, endDate, status]);
-
-        await connection.commit();
-        res.json({ success: true, message: '车辆调度成功' });
     } catch (error) {
-        if (connection) await connection.rollback();
-        console.error('Error scheduling vehicle:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('车辆调度失败:', error);
+
+        // 分类处理不同的错误类型
+        let statusCode = 500;
+        let errorMessage = error.message;
+
+        if (error.message.includes('找不到可用的车辆库存记录')) {
+            statusCode = 404;
+        } else if (error.message.includes('该时间段内车辆已被占用')) {
+            statusCode = 409;
+        }
+
+        res.status(statusCode).json({
+            success: false,
+            error: errorMessage
+        });
     } finally {
         if (connection) await connection.end();
     }
